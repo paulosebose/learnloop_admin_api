@@ -8,10 +8,11 @@ use App\Models\Option;
 use App\Models\Subject;
 use Maatwebsite\Excel\Facades\Excel;
 
-
+use PhpOffice\PhpWord\IOFactory;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Auth;
 
 class ExamController extends Controller
 {
@@ -253,9 +254,174 @@ public function deleteMultipleExams(Request $request)
 }
 
 
+public function processDocUpload(Request $request, $examId)
+{
+    $request->validate([
+        'doc_file' => 'required|mimes:docx,doc',
+    ]);
+
+    $uploaded = $request->file('doc_file');
+    $filename = time() . '.' . $uploaded->getClientOriginalExtension();
+    $destinationPath = storage_path('app/docs');
+
+    if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0777, true);
+    }
+
+    $uploaded->move($destinationPath, $filename);
+    $filePath = $destinationPath . '/' . $filename;
+
+    if (!file_exists($filePath)) {
+        return back()->with('error', 'File not found after upload.');
+    }
+
+    try {
+        $phpWord = IOFactory::load($filePath);
+    } catch (\Exception $e) {
+        return back()->with('error', 'Cannot read DOCX file: ' . $e->getMessage());
+    }
+
+    $admin_id = Auth::user()->id;
+    $questions = [];
+    $currentQuestion = null;
+
+    // Parse tables from DOCX
+    foreach ($phpWord->getSections() as $section) {
+        foreach ($section->getElements() as $element) {
+            // Check if element is a table
+            if (get_class($element) === 'PhpOffice\PhpWord\Element\Table') {
+                $table = $element;
+                $questionText = '';
+                $questionType = '';
+                $options = [];
+                $solution = '';
+                $marks = '';
+
+                // Loop through table rows
+                foreach ($table->getRows() as $row) {
+                    $cells = $row->getCells();
+                    
+                    if (count($cells) >= 2) {
+                        $firstCell = $this->getCellText($cells[0]);
+                        $secondCell = $this->getCellText($cells[1]);
+                        $thirdCell = isset($cells[2]) ? $this->getCellText($cells[2]) : '';
+
+                        // Parse each row based on first cell content
+                        if (stripos($firstCell, 'Question') !== false) {
+                            $questionText = trim($secondCell);
+                        } 
+                        elseif (stripos($firstCell, 'Type') !== false) {
+                            $questionType = trim($secondCell);
+                        } 
+                        elseif (stripos($firstCell, 'Option') !== false) {
+                            $optionText = trim($secondCell);
+                            $isCorrect = (stripos($thirdCell, 'correct') !== false && stripos($thirdCell, 'incorrect') === false);
+                            
+                            $options[] = [
+                                'option' => $optionText,
+                                'is_correct' => $isCorrect
+                            ];
+                        } 
+                        elseif (stripos($firstCell, 'Solution') !== false) {
+                            $solution = trim($secondCell);
+                        } 
+                        elseif (stripos($firstCell, 'Marks') !== false) {
+                            $marks = trim($secondCell);
+                        }
+                    }
+                }
+
+                // Add question if we have the required data
+                if (!empty($questionText) && !empty($options)) {
+                    $questions[] = [
+                        'question' => $questionText,
+                        'type' => $questionType,
+                        'options' => $options,
+                        'solution' => $solution,
+                        'marks' => $marks
+                    ];
+                }
+            }
+        }
+    }
+
+    // Check if questions were parsed
+    if (empty($questions)) {
+        unlink($filePath);
+        return back()->with('error', 'No questions found in the document. Please check the format.');
+    }
+
+    // Save questions and options to database
+   // Save questions and options to database
+$savedCount = 0;
+
+foreach ($questions as $q) {
+
+    // Clean question text (fix DOCX formatting issues)
+    $cleanQuestion = trim(preg_replace('/\s+/', ' ', $q['question']));
+
+    if ($cleanQuestion === '') {
+        continue; // skip empty question
+    }
+
+    // Check duplicate in DB
+    $exists = Question::where('exam_id', $examId)
+                      ->where('question', $q['question'])
+                      ->exists();
+
+    if ($exists) {
+        continue; // skip if already exists
+    }
+
+    try {
+        // Save question
+        $question = Question::create([
+            'exam_id' => $examId,
+            'question' => $cleanQuestion,
+            'admin_id' => $admin_id,
+           // 'marks' => $q['marks'] ?? 1,
+            'solution' => $q['solution'] ?? null,
+        ]);
+
+        // Save options
+        foreach ($q['options'] as $opt) {
+            Option::create([
+                'question_id' => $question->id,
+                'option' => $opt['option'],
+                'is_correct' => $opt['is_correct'],
+            ]);
+        }
+
+        $savedCount++;
+
+    } catch (\Exception $e) {
+        \Log::error('Error saving question: ' . $e->getMessage());
+    }
+}
 
 
+    // Delete uploaded file
+    unlink($filePath);
 
+    return back()->with('success', $savedCount . ' questions uploaded successfully!');
+}
 
+// Helper method to extract text from table cell
+private function getCellText($cell)
+{
+    $text = '';
+    foreach ($cell->getElements() as $element) {
+        if (method_exists($element, 'getText')) {
+            $text .= $element->getText();
+        } elseif (method_exists($element, 'getElements')) {
+            foreach ($element->getElements() as $child) {
+                if (method_exists($child, 'getText')) {
+                    $text .= $child->getText();
+                }
+            }
+        }
+    }
+    return $text;
+}
 
 }

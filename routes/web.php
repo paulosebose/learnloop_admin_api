@@ -62,6 +62,15 @@ Route::post('/exams/import', [ExamController::class, 'importExam'])->name('exams
 
 
 
+// Show all exams (table)
+Route::get('/exams', [ExamController::class, 'index'])->name('exams.index');
+
+// AJAX modal upload POST
+Route::post('/exam/{id}/doc-upload', [ExamController::class, 'processDocUpload'])
+    ->name('docUpload.store');
+
+
+
 //Subject
 Route::post('/insertSubject', [SubjectController::class, 'insertSubject'])->name('insertSubject');
 Route::get('/addSubject', [SubjectController::class, 'viewAddSubject'])->name('viewAddSubject');

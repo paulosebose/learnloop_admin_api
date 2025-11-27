@@ -318,6 +318,13 @@
                                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this exam?')">Delete</button>
                                             </form>
                                             <a href="{{ route('show-questions', $exam->id) }}" class="btn btn-info btn-sm">View</a> 
+                                            <a href="#" class="btn btn-primary btn-sm uploadBtn"
+                                        data-id="{{ $exam->id }}"
+                                        data-toggle="modal"
+                                        data-target="#uploadDocModal">
+                                        Upload
+                                        </a>
+
                                             
                                         </td>
                                         <td>
@@ -334,8 +341,44 @@
                                     @endforeach
                                 </tbody>
                             </table>
+
                         </div>
                         </form>
+                        <div class="modal fade" id="uploadDocModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Word File</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+</button>
+                </div>
+
+                <form id="docUploadForm" method="POST" enctype="multipart/form-data">
+                    @csrf
+
+                    <div class="modal-body">
+
+                        <input type="hidden" name="admin_id" value="{{ auth()->id() }}">
+                        <input type="hidden" id="modal_exam_id" name="exam_id">
+
+                        <div class="mb-3">
+                            <label>Select Word File (.doc/.docx)</label>
+                            <input type="file" name="doc_file" class="form-control" accept=".doc,.docx" required>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Upload & Save</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
                     </div>
                     
                     <!--/ List DataTable -->
@@ -390,6 +433,25 @@
 
 <!-- END: Page JS-->
 <script>
+   
+    document.addEventListener('DOMContentLoaded', function() {
+        let buttons = document.querySelectorAll('.uploadBtn');
+
+        // When clicking Upload on a row
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                let examId = this.dataset.id;
+
+                // Fill hidden input
+                document.getElementById('modal_exam_id').value = examId;
+
+                // Update form action URL
+                document.getElementById('docUploadForm').action =
+                    "/exam/" + examId + "/doc-upload";
+            });
+        });
+    });
+
     // Preload subjects with their levels and exams from Laravel
     const subjectsData = @json($allSubjects);
 
