@@ -156,9 +156,16 @@
     <label for="reason">Explanation (Optional)</label>
     <textarea class="form-control" id="reason" name="reason" rows="3">{{ old('reason', $question->reason) }}</textarea>
 </div>
+<div class="form-group">
+                                <label for="reason_image">Explanation Image (optional)</label>
+                                <input type="file" class="form-control" id="reason_image" name="reason_image" accept="image/*">
+                           
+                            @if($question->reason_image != null)
+<img src="{{asset($question->reason_image)}}" width="100px" height="100px">
 
 
-                    
+                    @endif
+                    </div>
                             <button type="submit" id="updateButton" class="btn btn-primary">Update Question</button>
                         </form>
                     </div>

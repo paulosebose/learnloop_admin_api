@@ -32,7 +32,8 @@ public function store(Request $request, $examId)
 {
     $request->validate([
         'question' => 'required|string|max:255',
-        'image' => 'nullable|image', 
+        'image' => 'nullable|image',
+        'reason_image' => 'nullable|image', 
         'options.*.option' => 'required',
         'options.*.is_correct' => 'nullable|boolean',
     ]);
@@ -40,6 +41,7 @@ public function store(Request $request, $examId)
 
   
     $imagePath = null;
+    $imagePath1 = null;
 
     // Check if an image file was uploaded
     if ($request->hasFile('image')) {
@@ -49,6 +51,13 @@ public function store(Request $request, $examId)
          $imagePath = url('assets/images/' . $imageName);
     }
 
+    if ($request->hasFile('reason_image')) {
+        $imageName = time() . '.' . $request->file('reason_image')->getClientOriginalExtension();
+        $destinationPath = public_path('assets/images');
+        $request->file('reason_image')->move($destinationPath, $imageName);
+         $imagePath1 = url('assets/images/' . $imageName);
+    }
+
     // Create the question, setting 'image' field only if $imagePath is set
     $question = Question::create([
         'exam_id' => $examId,
@@ -56,6 +65,7 @@ public function store(Request $request, $examId)
         'image' => $imagePath,
         'image_position' => $request->image_position,
          'reason' => $request->reason,
+         'reason_image' => $imagePath1,
         'admin_id' => $validated['admin_id'],
     ]);
 
@@ -83,6 +93,7 @@ public function update(Request $request, $examId, $questionId)
         $request->validate([
             'question' => 'required|string|max:255',
             'image' => 'nullable|image|max:2048',
+            'reason_image' => 'nullable|image|max:2048',
             'options.*.option' => 'required|string',
             'options.*.is_correct' => 'nullable|boolean',
         ]);
@@ -91,21 +102,29 @@ public function update(Request $request, $examId, $questionId)
         
         // Handle the uploaded image if it exists
         $imagePath = $question->image; // Keep the old image path if no new image is uploaded
+        $imagePath1 = $question->reason_image;
         if ($request->hasFile('image')) {
             $imageName = time() . '.' . $request->file('image')->getClientOriginalExtension();
             $destinationPath = public_path('assets/images');
             $request->file('image')->move($destinationPath, $imageName);
             $imagePath = url('assets/images/' . $imageName);
         }
+        if ($request->hasFile('reason_image')) {
+            $imageName = time() . '.' . $request->file('reason_image')->getClientOriginalExtension();
+            $destinationPath = public_path('assets/images');
+            $request->file('reason_image')->move($destinationPath, $imageName);
+            $imagePath1 = url('assets/images/' . $imageName);
+        }
     
         // Update the question
         $question->update([
             'question' => $request->question,
             'image' => $imagePath,
+            'reason_image' => $imagePath1,
             'image_position' => $request->image_position,
             'reason' => $request->reason,
         ]);
-    
+       // dd($question);
         // Update existing options
         foreach ($request->options as $option) {
             // Ensure that the ID exists before updating

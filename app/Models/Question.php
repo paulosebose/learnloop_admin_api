@@ -17,6 +17,7 @@ class Question extends Model
         'admin_id',
         'remaining_repeats',
         'reason',
+        'reason_image'
     ];
     public function exam()
     {
