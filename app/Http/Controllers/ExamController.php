@@ -354,13 +354,14 @@ public function processDocUpload(Request $request, $examId)
     // Save questions and options to database
    // Save questions and options to database
 $savedCount = 0;
-
+$skippedCount = 0;
 foreach ($questions as $q) {
 
     // Clean question text (fix DOCX formatting issues)
     $cleanQuestion = trim(preg_replace('/\s+/', ' ', $q['question']));
 
     if ($cleanQuestion === '') {
+       
         continue; // skip empty question
     }
 
@@ -370,6 +371,7 @@ foreach ($questions as $q) {
                       ->exists();
 
     if ($exists) {
+        $skippedCount++;
         continue; // skip if already exists
     }
 
@@ -403,7 +405,10 @@ foreach ($questions as $q) {
     // Delete uploaded file
     unlink($filePath);
 
-    return back()->with('success', $savedCount . ' questions uploaded successfully!');
+    return back()->with('success',
+    "$savedCount questions uploaded, $skippedCount duplicates skipped!"
+);
+
 }
 
 // Helper method to extract text from table cell
