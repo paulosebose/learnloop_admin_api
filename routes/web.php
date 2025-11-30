@@ -39,7 +39,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('levelview',[LevelController::class,'getLevels'])->name('levelview');
     //Level
 Route::get('addlevel',[AdminController::class,'addLevel'])->name('addlevel');
-
+Route::match(['get', 'post'],'searchByQuestion',[AdminController::class,'searchByQuestion'])->name('searchByQuestion');
 // Route::post('insertlevel',[LevelController::class,'insertlevel'])->name('insertlevel');
 Route::post('insertlevel', [LevelController::class, 'insertlevel'])->name('insertlevel');
 Route::get('vieweditlevel/{id}', [LevelController::class, 'viewEditLevel'])->name('vieweditlevel');

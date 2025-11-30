@@ -87,7 +87,21 @@
 
                     <!-- List DataTable -->
                     <div class="container">
+                        @if(session('error'))
+    <div style="color:red; font-weight:bold;">
+        {{ session('error') }}
+    </div>
+@endif
+
                         <h2 class="text-center mt-4">Quiz Levels</h2>
+
+                        <div class="text-right mb-3">
+                            <form action="{{route('searchByQuestion')}}" method="post">
+                                @csrf
+                            <input type="number" name="search_by_question" id="search_by_question" placeholder=" Question Number">
+                            <input type="submit" class="btn-primary btn-sm" value="Submit"> <!-- Add button -->
+                        </form>
+                        </div>
                         <div class="text-right mb-3">
                             <a href="{{route('addlevel')}}" class="btn-primary btn-sm">Add</a> <!-- Add button -->
                         </div>
