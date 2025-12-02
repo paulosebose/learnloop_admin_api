@@ -319,7 +319,7 @@
                                             </form>
                                             <a href="{{ route('show-questions', $exam->id) }}" class="btn btn-info btn-sm">View</a> 
                                             <a href="#" class="btn btn-primary btn-sm uploadBtn"
-                                        data-id="{{ $exam->id }}"
+                                        data-id="{{ @$exam->id }}"
                                         data-toggle="modal"
                                         data-target="#uploadDocModal">
                                         Upload
@@ -434,23 +434,31 @@
 <!-- END: Page JS-->
 <script>
    
-    document.addEventListener('DOMContentLoaded', function() {
-        let buttons = document.querySelectorAll('.uploadBtn');
+   document.addEventListener('DOMContentLoaded', function() {
+    let buttons = document.querySelectorAll('.uploadBtn');
 
-        // When clicking Upload on a row
-        buttons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                let examId = this.dataset.id;
+    // Blade generates correct full URL with subfolder
+    let routeTemplate = "{{ route('docUpload.store', ':id') }}";
 
-                // Fill hidden input
-                document.getElementById('modal_exam_id').value = examId;
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            let examId = this.dataset.id;
 
-                // Update form action URL
-                document.getElementById('docUploadForm').action =
-                    "/exam/" + examId + "/doc-upload";
-            });
+            // Fill hidden input
+            document.getElementById('modal_exam_id').value = examId;
+
+            // Replace placeholder with actual exam ID
+            let finalUrl = routeTemplate.replace(':id', examId);
+
+            // Update form action
+            document.getElementById('docUploadForm').action = finalUrl;
+
+            console.log(finalUrl); // Optional: debug URL
         });
     });
+});
+
+
 
     // Preload subjects with their levels and exams from Laravel
     const subjectsData = @json($allSubjects);

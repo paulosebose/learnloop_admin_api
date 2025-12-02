@@ -412,21 +412,79 @@ foreach ($questions as $q) {
 }
 
 // Helper method to extract text from table cell
+// private function getCellText($cell)
+// {
+//     $text = '';
+//     foreach ($cell->getElements() as $element) {
+//         if (method_exists($element, 'getText')) {
+//             $text .= $element->getText();
+//         } elseif (method_exists($element, 'getElements')) {
+//             foreach ($element->getElements() as $child) {
+//                 if (method_exists($child, 'getText')) {
+//                     $text .= $child->getText();
+//                 }
+//             }
+//         }
+//     }
+//     return $text;
+// }
+
 private function getCellText($cell)
 {
     $text = '';
+
     foreach ($cell->getElements() as $element) {
-        if (method_exists($element, 'getText')) {
-            $text .= $element->getText();
-        } elseif (method_exists($element, 'getElements')) {
+        if ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
             foreach ($element->getElements() as $child) {
-                if (method_exists($child, 'getText')) {
-                    $text .= $child->getText();
+                if ($child instanceof \PhpOffice\PhpWord\Element\Text) {
+                    $value = $child->getText();
+                    $style = $child->getFontStyle();
+
+                    // Convert to Unicode superscript
+                    if ($style && method_exists($style, 'isSuperScript') && $style->isSuperScript()) {
+                        $value = $this->toSuperscript($value);
+                    }
+                    // Convert to Unicode subscript
+                    elseif ($style && method_exists($style, 'isSubScript') && $style->isSubScript()) {
+                        $value = $this->toSubscript($value);
+                    }
+
+                    $text .= $value;
                 }
             }
         }
+        elseif ($element instanceof \PhpOffice\PhpWord\Element\Text) {
+            $text .= $element->getText();
+        }
     }
+
     return $text;
 }
+
+private function toSuperscript($text)
+{
+    $map = [
+        '0' => '⁰', '1' => '¹', '2' => '²', '3' => '³', '4' => '⁴',
+        '5' => '⁵', '6' => '⁶', '7' => '⁷', '8' => '⁸', '9' => '⁹',
+        '+' => '⁺', '-' => '⁻', '=' => '⁼', '(' => '⁽', ')' => '⁾'
+    ];
+    return strtr($text, $map);
+}
+
+private function toSubscript($text)
+{
+    $map = [
+        '0' => '₀', '1' => '₁', '2' => '₂', '3' => '₃', '4' => '₄',
+        '5' => '₅', '6' => '₆', '7' => '₇', '8' => '₈', '9' => '₉',
+        '+' => '₊', '-' => '₋', '=' => '₌', '(' => '₍', ')' => '₎'
+    ];
+    return strtr($text, $map);
+}
+/**
+ * Decode entities (including double-encoded), preserve existing <sup>/<sub>,
+ * convert common patterns to <sup>/<sub>.
+ */
+
+
 
 }
