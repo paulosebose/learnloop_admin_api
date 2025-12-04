@@ -393,6 +393,11 @@ foreach ($questions as $q) {
                 'is_correct' => $opt['is_correct'],
             ]);
         }
+        Option::create([
+    'question_id' => $question->id,
+    'option' => 'Not Sure', // <-- change as needed
+    'is_correct' => false,
+]);
 
         $savedCount++;
 
