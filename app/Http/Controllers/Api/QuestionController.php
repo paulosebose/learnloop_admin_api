@@ -395,7 +395,7 @@ public function getQuestionsWithOptions(Request $request)
 
     $questions = Question::where('exam_id', $examId)
         ->whereNull('deleted_at')
-        ->select('id', 'exam_id', 'question', 'image','image_position', 'reason', 'created_at', 'updated_at')
+        ->select('id', 'exam_id', 'question', 'image','image_position', 'reason','reason_image', 'created_at', 'updated_at')
         ->get();
 
     $allOptions = Option::whereIn('question_id', $questions->pluck('id'))
