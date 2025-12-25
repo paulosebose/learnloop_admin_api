@@ -38,6 +38,31 @@ class LevelController extends Controller
     }
     return view('admin.levels', compact('levels', 'subjects'));
    }
+    public function getLevelById($id)
+   {
+       $user = Auth::user();
+   if ($user->usertype === 'subadmin') {
+        // Get the subadmin's subject_id from users table
+        $subadminSubjectId = $user->subject_id;
+
+        // Fetch levels where subject_id matches the subadmin's assigned subject
+        $levels = Level::where('subject_id', $subadminSubjectId)
+                       ->latest()
+                       ->get();
+
+        // Fetch the subject assigned to this subadmin
+        $subjects = Subject::where('id', $subadminSubjectId)
+                           ->withoutTrashed()
+                           ->get();
+       
+   }
+                           else {
+        // Admin can see everything
+        $subjects = Subject::withoutTrashed()->get();
+        $levels = Level::where('subject_id', $id)->latest()->get();
+    }
+    return view('admin.levels', compact('levels', 'subjects'));
+   }
    public function insertlevel(Request $request)
    
    {

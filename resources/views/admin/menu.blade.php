@@ -59,12 +59,12 @@
             </li>
             
             <!-- Move Manage Levels below Manage Subjects for Admin -->
-            <li class="nav-item {{ Request::is('levelview') ? 'active' : '' }}">
+            <!-- <li class="nav-item {{ Request::is('levelview') ? 'active' : '' }}">
                 <a class="d-flex align-items-center" href="{{ route('levelview') }}">
                     <i data-feather="chevrons-up"></i>
                     <span class="menu-title text-truncate" data-i18n="Chat">Manage Levels</span>
                 </a>
-            </li>
+            </li> -->
             
             <li class="nav-item {{ Request::is('getuser') ? 'active' : '' }}">
                 <a class="d-flex align-items-center" href="{{ route('getuser') }}">

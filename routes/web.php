@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/payments', [PaymentController::class, 'listPayments'])->name('payments.list');
     Route::get('levelview',[LevelController::class,'getLevels'])->name('levelview');
     //Level
+    Route::get('getLevels/{id}', [LevelController::class, 'getLevelById'])->name('getLevelById');
 Route::get('addlevel',[AdminController::class,'addLevel'])->name('addlevel');
 Route::match(['get', 'post'],'searchByQuestion',[AdminController::class,'searchByQuestion'])->name('searchByQuestion');
 // Route::post('insertlevel',[LevelController::class,'insertlevel'])->name('insertlevel');

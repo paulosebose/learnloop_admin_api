@@ -124,6 +124,10 @@
                                         </li>
                                     @endforeach
                                 </ul>
+<br>
+                                <h5>Created By:</h5>
+                                <p>{{ $question->admin ? $question->admin->name : 'Not Defined' }}</p>
+                               
                     
                                 <a href="{{ route('show-questions', $examId) }}" class="btn btn-primary mt-4">Back to Questions</a>
                             </div>

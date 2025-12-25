@@ -192,6 +192,18 @@
             </div>
         </div>
     </div>
+ <div class="col-md-4 mb-3">
+        <div class="card card-custom">
+            <div class="card-header">
+                <h5 class="mb-0">Usage Time</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ @$totalTime }} Hours</p>
+            </div>
+        </div>
+    </div>
+
+
 </div>
                             <!--<div class="col-md-8 mb-3">-->
                             <!--    <div class="card">-->

@@ -79,38 +79,75 @@ class SubjectController extends Controller
             ->orderBy('created_at', 'desc')
             ->first();
 
-        $isPaid = $payment ? true : false;
 
-        // If not paid, check access table
-        if (!$isPaid) {
-            $access = \DB::table('subject_accesses')
-                ->where('user_id', $userId)
-                ->where('subject_id', $subject->id)
-                ->where('accessibility', 1)
-                ->exists();
-            $isPaid = $access;
+            $isPaid = false;
+$isExpired = false;
+
+if ($payment) {
+    $isPaid = true;
+}
+
+// Access table
+if (!$isPaid) {
+    $isPaid = DB::table('subject_accesses')
+        ->where('user_id', $userId)
+        ->where('subject_id', $subject->id)
+        ->where('accessibility', 1)
+        ->exists();
+}
+
+// Duration logic
+if (!is_null($subject->duration)) {
+    $durationDays = (int)$subject->duration;
+
+    if ($payment) {
+        $paymentDate = Carbon::parse($payment->created_at);
+        $expiryDate  = $paymentDate->copy()->addDays($durationDays);
+        $today       = Carbon::now();
+
+        if ($today->lessThanOrEqualTo($expiryDate)) {
+            $validity = $today->diffInDays($expiryDate) . ' days';
+        } else {
+            $validity = "0 days";
+            $isExpired = true; // ✅ separate flag
         }
+    } else {
+        $validity = $durationDays . ' days';
+    }
+}
 
-        // Duration and validity check
-        if (!is_null($subject->duration)) {
-            $durationDays = (int)$subject->duration;
+        // $isPaid = $payment ? true : false;
 
-            if ($payment) {
-                $paymentDate = Carbon::parse($payment->created_at);
-                $expiryDate = $paymentDate->copy()->addDays($durationDays);
-                $today = Carbon::now();
+        // // If not paid, check access table
+        // if (!$isPaid) {
+        //     $access = \DB::table('subject_accesses')
+        //         ->where('user_id', $userId)
+        //         ->where('subject_id', $subject->id)
+        //         ->where('accessibility', 1)
+        //         ->exists();
+        //     $isPaid = $access;
+        // }
 
-                if ($today->lessThanOrEqualTo($expiryDate)) {
-                    $remainingDays = (int)$today->diffInDays($expiryDate);
-                    $validity = $remainingDays . ' days';
-                } else {
-                    $validity = "0 days";
-                    $isPaid = false;
-                }
-            } else {
-                $validity = $durationDays . ' days';
-            }
-        }
+        // // Duration and validity check
+        // if (!is_null($subject->duration)) {
+        //     $durationDays = (int)$subject->duration;
+
+        //     if ($payment) {
+        //         $paymentDate = Carbon::parse($payment->created_at);
+        //         $expiryDate = $paymentDate->copy()->addDays($durationDays);
+        //         $today = Carbon::now();
+
+        //         if ($today->lessThanOrEqualTo($expiryDate)) {
+        //             $remainingDays = (int)$today->diffInDays($expiryDate);
+        //             $validity = $remainingDays . ' days';
+        //         } else {
+        //             $validity = "0 days";
+        //             $isPaid = false;
+        //         }
+        //     } else {
+        //         $validity = $durationDays . ' days';
+        //     }
+        // }
 
         // Subadmin info
         $subadmin = \DB::table('users')
@@ -148,6 +185,7 @@ class SubjectController extends Controller
             'phone' => $subadmin?->mobile ?? null,
             'validity' => $validity,
             'paid' => $isPaid ? 1 : 0,
+            'expired'  => $isExpired ? 1 : 0,
             'total_exams' => $totalExams,
             'total_questions' => $totalQuestions,
         ];

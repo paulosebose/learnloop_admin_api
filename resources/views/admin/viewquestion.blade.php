@@ -190,11 +190,14 @@
                              <div class="d-flex justify-content-end mb-1 gap-2">
                             <a href="{{ route('add-question', ['examId' => $exam->id]) }}" class="btn btn-primary">Add Question</a> <!-- Add Question button -->
                         </div>
+                        
                        <form id="bulkDeleteForm" method="POST" action="{{ route('questions.bulkDelete') }}">
                         @csrf
                         <div class="text-right mb-3">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete selected questions?')">Delete Selected</button>
                         </div>
+                        <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search questions...">
+
                         <div class="table-responsive">
                             <table class="table table-custom">
                                   
@@ -202,9 +205,10 @@
                                     <tr>
                                         <th><input type="checkbox" id="selectAll"></th>
                                         <th>ID</th>
-                                        <th>Added By</th>
+                                       
                                         <th>Question</th>
-                                        <th>Image</th> <!-- New column for images -->
+                                         <th>Options</th>
+                                        <th>Reason</th> <!-- New column for images -->
                                         <th>Actions</th> <!-- Column for actions -->
                                     </tr>
                                 </thead>
@@ -214,14 +218,33 @@
                                           <td><input type="checkbox" name="question_ids[]" value="{{ $question->id }}"></td>
                                          <td>{{ $loop->index + 1 }}</td>
                                         <!--<td>{{ $question->id }}</td>-->
-                                        <td>{{ $question->admin ? $question->admin->name : 'Not Defined' }}</td>
-                                        <td>{{ $question->question }}</td>
+                                        <!-- <td>{{ $question->admin ? $question->admin->name : 'Not Defined' }}</td> -->
+                                       <td style="min-width:220px; max-width:220px;">{{ $question->question }}</td>
+
+                                        <td style="min-width:300px; max-width:300px;">
+                                        <ul class="list-group option-list">
+                                            @foreach($question->options as $option)
+                                                <li class="list-group-item d-flex justify-content-between align-items-center
+                                                    {{ $option->is_correct ? 'list-group-item-success' : '' }}">
+                                                    <span>{{ $option->option }}</span>
+
+                                                    <span class="badge {{ $option->is_correct ? 'bg-success' : 'bg-secondary' }}">
+                                                        {{ $option->is_correct ? 'Correct' : 'Incorrect' }}
+                                                    </span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+
+                                        
                                         <td>
-                                            @if($question->image)
+                                            <!-- @if($question->image)
                                                 <img src="{{ asset($question->image) }}" alt="Question {{ $question->id }}" class="img-thumbnail" style="width: 50px; height: 50px;"> <!-- Display image -->
-                                            @else
+                                            <!-- @else
                                                 No Image
-                                            @endif
+                                            @endif --> 
+                                        {{ $question->reason ?? '' }}
+
                                         </td>
                                         <td>
                                             
@@ -294,6 +317,23 @@
     <!-- END: Page JS-->
 
     <script>
+        document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('table tbody tr');
+
+    rows.forEach(row => {
+        const questionCell = row.querySelector('td:nth-child(3)'); // 3rd column = Question
+        if (questionCell) {
+            const questionText = questionCell.textContent.toLowerCase();
+            if (questionText.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+});
+
         $(window).on('load', function() {
             if (feather) {
                 feather.replace({

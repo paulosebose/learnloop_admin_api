@@ -208,6 +208,7 @@
 
 
                         </div>
+                          <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search Subjects...">
                         <div class="table-responsive">
                             <table class="table table-custom">
                                 <thead>
@@ -253,7 +254,7 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this subject?')">Delete</button>
                                             </form>
-                                          
+                                           <a href="{{ route('getLevelById', $subject->id) }}" class="btn btn-info btn-sm">View Levels</a>
                                             
                                         </td>
                                     </tr>
@@ -308,6 +309,22 @@
     <!-- END: Page JS-->
 
     <script>
+        document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('table tbody tr');
+
+    rows.forEach(row => {
+        const questionCell = row.querySelector('td:nth-child(2)'); // 3rd column = Question
+        if (questionCell) {
+            const questionText = questionCell.textContent.toLowerCase();
+            if (questionText.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+});
         $(window).on('load', function() {
             if (feather) {
                 feather.replace({

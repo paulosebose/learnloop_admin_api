@@ -78,7 +78,8 @@ public function store(Request $request, $examId)
         ]);
     }
 
-    return redirect()->route('show-questions', $examId)->with('success', 'Question added successfully!');
+    // return redirect()->route('show-questions', $examId)->with('success', 'Question added successfully!');
+      return redirect()->route('add-question', ['examId' => $examId])->with('success', 'Question added successfully!');
 }
 
 public function edit($examId, $questionId)
@@ -124,7 +125,7 @@ public function update(Request $request, $examId, $questionId)
             'image_position' => $request->image_position,
             'reason' => $request->reason,
         ]);
-       // dd($question);
+      
         // Update existing options
         foreach ($request->options as $option) {
             // Ensure that the ID exists before updating

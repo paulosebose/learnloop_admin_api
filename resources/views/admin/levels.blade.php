@@ -96,6 +96,7 @@
                         <h2 class="text-center mt-4">Quiz Levels</h2>
 
                         <div class="text-right mb-3">
+                           
                             <form action="{{route('searchByQuestion')}}" method="post">
                                 @csrf
                             <input type="number" name="search_by_question" id="search_by_question" placeholder=" Question Number">
@@ -104,7 +105,9 @@
                         </div>
                         <div class="text-right mb-3">
                             <a href="{{route('addlevel')}}" class="btn-primary btn-sm">Add</a> <!-- Add button -->
+                             <a href="{{route('viewSubjects')}}" class="btn-primary btn-sm"><< Back</a> <!-- Add button -->
                         </div>
+                          <input type="text" id="searchInput" class="form-control mb-3" placeholder="Search Levels...">
                         <div class="table-responsive">
                             <table class="table table-custom">
                                 <thead>
@@ -196,6 +199,22 @@
     <!-- END: Page JS-->
 
     <script>
+         document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll('table tbody tr');
+
+    rows.forEach(row => {
+        const questionCell = row.querySelector('td:nth-child(2)'); // 3rd column = Question
+        if (questionCell) {
+            const questionText = questionCell.textContent.toLowerCase();
+            if (questionText.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+});
         $(window).on('load', function() {
             if (feather) {
                 feather.replace({

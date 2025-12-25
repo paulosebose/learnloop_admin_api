@@ -129,6 +129,7 @@ public function showUserQuizStatus($id)
         
         // Assign user details if user exists
         $name = $user->name;
+         $totalTime = $user->total_time;
         $email = $user->email;
          $status = $user->status;
          $subjects = Subject::whereNull('deleted_at')->get();
@@ -138,6 +139,7 @@ public function showUserQuizStatus($id)
 
     return view('admin.userStatus', compact(
         'id',
+        'totalTime',
         'name', 
         'email',
         'status',
